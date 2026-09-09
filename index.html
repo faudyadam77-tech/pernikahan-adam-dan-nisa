@@ -852,7 +852,7 @@
 
       <div class="mempelai-card">
         <div class="mempelai-photo">
-          <img src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/Kumpulan-gambar@main/IMG_20260904_083703.jpg" alt="Annisa">
+          <img src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/sanakhudu@main/gambar_istri.jpg" alt="Annisa">
         </div>
         <div class="mempelai-name">Annisa</div>
         <div class="mempelai-fullname">Annisa</div>
@@ -1023,7 +1023,7 @@
 
     <div class="gallery-grid">
       <div class="gallery-item"><img src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/Kumpulan-gambar@main/IMG_20260904_083703.jpg" alt="Foto 1"></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400" alt="Foto 2"></div>
+      <div class="gallery-item"><img src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/sanakhudu@main/gambar_istri.jpg" alt="Foto 2"></div>
       <div class="gallery-item"><img src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=400" alt="Foto 3"></div>
       <div class="gallery-item"><img src="https://images.unsplash.com/photo-1529634806980-85c3dd6d34ac?w=400" alt="Foto 4"></div>
       <div class="gallery-item"><img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=400" alt="Foto 5"></div>
@@ -1143,8 +1143,9 @@
   <i class="fas fa-music"></i>
 </button>
 
-<audio id="bgMusic" loop>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+<!-- AUDIO - MUSIK ARUSATUN -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/sanakhudu@main/arusatun.mp3" type="audio/mpeg">
 </audio>
 
 <script>
@@ -1154,12 +1155,24 @@
     document.getElementById('guestName').textContent = decodeURIComponent(toParam);
   }
 
+  // ===== BUKA UNDANGAN + PLAY MUSIK =====
   function openInvitation() {
     document.getElementById('cover').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
     document.getElementById('musicBtn').style.display = 'block';
     document.body.style.overflow = 'auto';
-    toggleMusic();
+    
+    // Putar musik otomatis saat tombol "Buka Undangan" diklik
+    const music = document.getElementById('bgMusic');
+    music.play().then(() => {
+      isPlaying = true;
+      musicBtn.classList.add('playing');
+      musicBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    }).catch(err => {
+      console.log('Autoplay dicegah browser:', err);
+      // Jika autoplay dicegah, tampilkan tombol musik saja
+    });
+    
     initAnimations();
   }
 
