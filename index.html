@@ -7,6 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Firebase SDK untuk Ucapan -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -15,7 +20,6 @@
     --gold: #C9A961;
     --cream: #F5F0E8;
     --dark: #3D3229;
-    --sage: #A8B5A0;
     --white: #FFFFFF;
   }
 
@@ -28,10 +32,10 @@
     overflow-x: hidden;
   }
 
-  /* ===== COVER SECTION ===== */
+  /* ===== COVER ===== */
   .cover {
     height: 100vh;
-    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
                 url('https://images.unsplash.com/photo-1519741497674-611481863552?w=1600') center/cover;
     display: flex;
     flex-direction: column;
@@ -40,22 +44,11 @@
     text-align: center;
     color: var(--white);
     position: relative;
-    animation: fadeIn 1.5s ease;
+    cursor: pointer; /* ← PERBAIKAN: seluruh area bisa diklik */
+    user-select: none;
   }
-
-  .cover .ornament-top, .cover .ornament-bottom {
-    position: absolute;
-    width: 200px;
-    height: 100px;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"><path d="M0,50 Q50,0 100,50 T200,50" fill="none" stroke="%23C9A961" stroke-width="2"/></svg>') no-repeat center;
-    background-size: contain;
-  }
-
-  .cover .ornament-top { top: 30px; }
-  .cover .ornament-bottom { bottom: 30px; transform: rotate(180deg); }
 
   .cover-subtitle {
-    font-family: 'Montserrat', sans-serif;
     font-size: 0.9em;
     letter-spacing: 4px;
     text-transform: uppercase;
@@ -100,26 +93,51 @@
     font-size: 1.2em;
   }
 
+  /* ===== PERBAIKAN TOMBOL BUKA UNDANGAN ===== */
   .open-btn {
     margin-top: 30px;
-    padding: 14px 40px;
+    padding: 18px 50px;
     background: var(--gold);
     color: var(--white);
     border: none;
-    border-radius: 30px;
-    font-size: 1em;
+    border-radius: 50px;
+    font-size: 1.05em;
     font-weight: 600;
     cursor: pointer;
     letter-spacing: 2px;
     text-transform: uppercase;
-    transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(201,169,97,0.4);
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(201,169,97,0.5);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    z-index: 10;
+    /* PERBAIKAN: memastikan seluruh area button bisa diklik */
+    width: auto;
+    min-width: 250px;
   }
 
   .open-btn:hover {
     background: var(--primary);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(201,169,97,0.6);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(201,169,97,0.7);
+  }
+
+  .open-btn:active {
+    transform: translateY(-1px) scale(0.98);
+  }
+
+  .open-btn i {
+    font-size: 1.1em;
+  }
+
+  .open-hint {
+    margin-top: 15px;
+    font-size: 0.8em;
+    opacity: 0.7;
+    letter-spacing: 1px;
   }
 
   /* ===== MUSIC TOGGLE ===== */
@@ -127,17 +145,22 @@
     position: fixed;
     bottom: 30px;
     right: 30px;
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
     background: var(--gold);
     color: var(--white);
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 1.2em;
+    font-size: 1.3em;
     z-index: 1000;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     display: none;
+    transition: all 0.3s;
+  }
+
+  .music-toggle:hover {
+    transform: scale(1.1);
   }
 
   .music-toggle.playing {
@@ -145,8 +168,8 @@
   }
 
   @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(201,169,97,0.7); }
+    50% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(201,169,97,0); }
   }
 
   /* ===== SECTIONS ===== */
@@ -165,7 +188,6 @@
   }
 
   .section-subtitle {
-    font-family: 'Montserrat', sans-serif;
     font-size: 0.85em;
     letter-spacing: 4px;
     text-transform: uppercase;
@@ -210,7 +232,6 @@
 
   .ayat {
     font-style: italic;
-    color: var(--dark);
     line-height: 2;
     margin: 30px 0;
     font-size: 1.05em;
@@ -226,7 +247,6 @@
   .salam {
     font-size: 1.1em;
     line-height: 2;
-    color: var(--dark);
     margin: 30px 0;
   }
 
@@ -252,12 +272,14 @@
   }
 
   .mempelai-photo {
-    width: 180px;
-    height: 180px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     margin: 0 auto 20px;
     background: linear-gradient(135deg, var(--gold), var(--primary));
     padding: 5px;
+    overflow: hidden;
+    position: relative;
   }
 
   .mempelai-photo img {
@@ -266,7 +288,28 @@
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--white);
+    transition: opacity 0.5s;
   }
+
+  .mempelai-photo .loading-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    z-index: 2;
+  }
+
+  .mempelai-photo .loading-overlay i {
+    color: var(--gold);
+    font-size: 2em;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .mempelai-name {
     font-family: 'Great Vibes', cursive;
@@ -278,7 +321,6 @@
   .mempelai-fullname {
     font-size: 1.1em;
     font-weight: 600;
-    color: var(--dark);
     margin-bottom: 15px;
   }
 
@@ -373,14 +415,8 @@
     max-width: 900px;
   }
 
-  .countdown-section .section-title {
-    color: var(--gold);
-  }
-
-  .countdown-section .section-subtitle {
-    color: var(--white);
-    opacity: 0.8;
-  }
+  .countdown-section .section-title { color: var(--gold); }
+  .countdown-section .section-subtitle { color: var(--white); opacity: 0.8; }
 
   .countdown {
     display: flex;
@@ -426,9 +462,7 @@
   .story-timeline::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    left: 0; top: 0; bottom: 0;
     width: 2px;
     background: var(--gold);
   }
@@ -446,10 +480,8 @@
   .story-item::before {
     content: '';
     position: absolute;
-    left: -36px;
-    top: 30px;
-    width: 14px;
-    height: 14px;
+    left: -36px; top: 30px;
+    width: 14px; height: 14px;
     background: var(--gold);
     border-radius: 50%;
     border: 3px solid var(--cream);
@@ -493,19 +525,35 @@
     cursor: pointer;
     transition: transform 0.3s;
     background: linear-gradient(135deg, var(--gold), var(--primary));
+    position: relative;
   }
 
-  .gallery-item:hover {
-    transform: scale(1.05);
-  }
+  .gallery-item:hover { transform: scale(1.05); }
 
   .gallery-item img {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     object-fit: cover;
+    transition: opacity 0.5s;
   }
 
-  /* ===== RSVP & UCAPAN ===== */
+  .gallery-item .loading-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .gallery-item .loading-overlay i {
+    color: var(--gold);
+    font-size: 2em;
+    animation: spin 1s linear infinite;
+  }
+
+  /* ===== RSVP ===== */
   .form-section {
     background: var(--white);
     border-radius: 20px;
@@ -572,10 +620,6 @@
 
   .radio-group input { display: none; }
 
-  .radio-group input:checked + span {
-    color: var(--gold);
-  }
-
   .radio-group label:has(input:checked) {
     border-color: var(--gold);
     background: rgba(201,169,97,0.1);
@@ -600,12 +644,16 @@
   .submit-btn:hover {
     background: var(--primary);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(139,115,85,0.3);
+  }
+
+  .submit-btn:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
   }
 
   .ucapan-list {
     margin-top: 40px;
-    max-height: 400px;
+    max-height: 500px;
     overflow-y: auto;
     text-align: left;
   }
@@ -616,6 +664,12 @@
     border-radius: 12px;
     margin-bottom: 15px;
     border-left: 4px solid var(--gold);
+    animation: slideIn 0.5s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
   }
 
   .ucapan-header {
@@ -623,6 +677,8 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .ucapan-name {
@@ -634,7 +690,6 @@
     font-size: 0.8em;
     padding: 4px 12px;
     border-radius: 20px;
-    background: var(--gold);
     color: var(--white);
   }
 
@@ -654,7 +709,19 @@
     margin-top: 8px;
   }
 
-  /* ===== AMPLOP DIGITAL ===== */
+  .loading-ucapan {
+    text-align: center;
+    padding: 30px;
+    color: #999;
+  }
+
+  .loading-ucapan i {
+    font-size: 2em;
+    color: var(--gold);
+    animation: spin 1s linear infinite;
+  }
+
+  /* ===== AMPLOP ===== */
   .amplop-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -681,7 +748,6 @@
     font-family: 'Courier New', monospace;
     font-size: 1.3em;
     font-weight: 700;
-    color: var(--dark);
     margin: 10px 0;
     letter-spacing: 2px;
   }
@@ -703,9 +769,7 @@
     transition: all 0.3s;
   }
 
-  .copy-btn:hover {
-    background: var(--primary);
-  }
+  .copy-btn:hover { background: var(--primary); }
 
   /* ===== PENUTUP ===== */
   .penutup {
@@ -717,9 +781,7 @@
     max-width: 900px;
   }
 
-  .penutup .section-title {
-    color: var(--gold);
-  }
+  .penutup .section-title { color: var(--gold); }
 
   .penutup-text {
     font-size: 1.1em;
@@ -736,7 +798,6 @@
     margin: 30px 0;
   }
 
-  /* ===== FOOTER ===== */
   footer {
     text-align: center;
     padding: 30px;
@@ -744,17 +805,7 @@
     font-size: 0.85em;
   }
 
-  footer a {
-    color: var(--gold);
-    text-decoration: none;
-  }
-
   /* ===== ANIMATIONS ===== */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
   .fade-in {
     opacity: 0;
     transform: translateY(30px);
@@ -778,6 +829,7 @@
     .countdown-item { min-width: 80px; padding: 15px; }
     .countdown-number { font-size: 2.2em; }
     section { padding: 50px 15px; }
+    .open-btn { min-width: 220px; padding: 15px 40px; }
   }
 
   ::-webkit-scrollbar { width: 8px; }
@@ -789,7 +841,6 @@
 
 <!-- ==================== COVER ==================== -->
 <div class="cover" id="cover">
-  <div class="ornament-top"></div>
   <div class="cover-subtitle">The Wedding of</div>
   <div class="cover-title">Adam</div>
   <div class="cover-ampersand">&</div>
@@ -802,10 +853,15 @@
     <strong id="guestName">Bapak/Ibu/Saudara/i</strong>
   </div>
 
-  <button class="open-btn" onclick="openInvitation()">
-    <i class="fas fa-envelope-open"></i> Buka Undangan
+  <!-- PERBAIKAN: Button lebih besar, bisa diklik di seluruh area -->
+  <button class="open-btn" id="openBtn" onclick="openInvitation()">
+    <i class="fas fa-envelope-open"></i>
+    <span>Buka Undangan</span>
   </button>
-  <div class="ornament-bottom"></div>
+  
+  <div class="open-hint">
+    <i class="fas fa-hand-pointer"></i> Klik di mana saja untuk membuka
+  </div>
 </div>
 
 <!-- ==================== KONTEN UTAMA ==================== -->
@@ -828,7 +884,7 @@
     </p>
   </section>
 
-  <!-- MEMPELAI -->
+  <!-- MEMPELAI - FOTO DARI SPREADSHEET -->
   <section class="fade-in">
     <div class="section-title">Mempelai</div>
     <div class="section-subtitle">The Bride & Groom</div>
@@ -837,7 +893,9 @@
     <div class="mempelai-grid">
       <div class="mempelai-card">
         <div class="mempelai-photo">
-          <img src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/Kumpulan-gambar@main/IMG_20260904_083703.jpg" alt="Adam">
+          <div class="loading-overlay"><i class="fas fa-spinner"></i></div>
+          <!-- src kosong, akan diisi dari Spreadsheet -->
+          <img id="fotoAdam" src="" alt="Adam" style="opacity: 0;">
         </div>
         <div class="mempelai-name">Adam</div>
         <div class="mempelai-fullname">Adam</div>
@@ -852,7 +910,8 @@
 
       <div class="mempelai-card">
         <div class="mempelai-photo">
-          <img src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/sanakhudu@main/gambar_istri.jpg" alt="Annisa">
+          <div class="loading-overlay"><i class="fas fa-spinner"></i></div>
+          <img id="fotoAnnisa" src="" alt="Annisa" style="opacity: 0;">
         </div>
         <div class="mempelai-name">Annisa</div>
         <div class="mempelai-fullname">Annisa</div>
@@ -921,22 +980,10 @@
     <div class="divider" style="background: var(--gold);"></div>
 
     <div class="countdown" id="countdown">
-      <div class="countdown-item">
-        <div class="countdown-number" id="days">00</div>
-        <div class="countdown-label">Hari</div>
-      </div>
-      <div class="countdown-item">
-        <div class="countdown-number" id="hours">00</div>
-        <div class="countdown-label">Jam</div>
-      </div>
-      <div class="countdown-item">
-        <div class="countdown-number" id="minutes">00</div>
-        <div class="countdown-label">Menit</div>
-      </div>
-      <div class="countdown-item">
-        <div class="countdown-number" id="seconds">00</div>
-        <div class="countdown-label">Detik</div>
-      </div>
+      <div class="countdown-item"><div class="countdown-number" id="days">00</div><div class="countdown-label">Hari</div></div>
+      <div class="countdown-item"><div class="countdown-number" id="hours">00</div><div class="countdown-label">Jam</div></div>
+      <div class="countdown-item"><div class="countdown-number" id="minutes">00</div><div class="countdown-label">Menit</div></div>
+      <div class="countdown-item"><div class="countdown-number" id="seconds">00</div><div class="countdown-label">Detik</div></div>
     </div>
   </section>
 
@@ -950,88 +997,66 @@
       <div class="story-item">
         <div class="story-date">BAB I — PONDOK PESANTREN</div>
         <div class="story-title">Pertemuan yang Tak Disengaja</div>
-        <div class="story-text">
-          Di sebuah pondok pesantren yang sunyi, di antara deretan kitab kuning dan suara lantunan ayat suci, 
-          takdir mulai merajut benang-benang kisah kami. Saat itu, aku adalah seorang santri senior, 
-          sementara dia — Annisa — adalah adik kelas yang baru saja menginjakkan kaki di bangku SMP pondok. 
-          Kami berada di koridor yang sama, melewati aula yang sama, menatap langit yang sama, 
-          namun belum saling mengenal. Waktu itu, aku bahkan tidak tahu bahwa gadis yang lalu-lalang 
-          di depanku kelak akan menjadi belahan jiwaku.
-        </div>
+        <div class="story-text">Di sebuah pondok pesantren yang sunyi, di antara deretan kitab kuning dan suara lantunan ayat suci, takdir mulai merajut benang-benang kisah kami. Saat itu, aku adalah seorang santri senior, sementara dia — Annisa — adalah adik kelas yang baru saja menginjakkan kaki di bangku SMP pondok. Kami berada di koridor yang sama, melewati aula yang sama, menatap langit yang sama, namun belum saling mengenal.</div>
       </div>
-
       <div class="story-item">
         <div class="story-date">BAB II — PERPISAHAN</div>
         <div class="story-title">Ketika Jejak Saling Menghilang</div>
-        <div class="story-text">
-          Hari-hari di pondok berlalu seperti air yang mengalir. Aku lulus lebih dulu, meninggalkan 
-          gerbang pesantren dengan sejuta harapan dan pertanyaan yang belum terjawab. Setelah itu, 
-          kabar tentang Annisa hilang ditelan waktu. Tidak ada pesan, tidak ada telepon, tidak ada 
-          jejak digital yang tersisa. Kami seperti dua kapal yang pernah berpapasan di malam hari, 
-          lalu masing-masing melanjutkan pelayaran ke arah yang berbeda. Aku pun menjalani hidup, 
-          menyelesaikan pendidikan di Jawa, dan mulai merintis karier sebagai guru di SD Muhammadiyah. 
-          Hidup berjalan biasa — hingga suatu hari, takdir tersenyum kembali.
-        </div>
+        <div class="story-text">Hari-hari di pondok berlalu seperti air yang mengalir. Aku lulus lebih dulu, meninggalkan gerbang pesantren dengan sejuta harapan. Setelah itu, kabar tentang Annisa hilang ditelan waktu. Aku pun menjalani hidup, menyelesaikan pendidikan di Jawa, dan mulai merintis karier sebagai guru di SD Muhammadiyah.</div>
       </div>
-
       <div class="story-item">
         <div class="story-date">BAB III — TAKDIR BERTEMU KEMBALI</div>
         <div class="story-title">Satu Atap, Dua Hati yang Sama</div>
-        <div class="story-text">
-          Setahun setelah aku mengajar di SD Muhammadiyah, sebuah kejutan manis datang mengetuk pintu. 
-          Annisa — gadis yang dulu hanya kukenal sekilas di pondok — ternyata juga lulus dan diterima 
-          bekerja di tempat yang sama denganku. Bayangkan, dari sekian banyak sekolah di negeri ini, 
-          Allah mempertemukan kami kembali di satu ruangan guru yang sama. Kami yang dulu hanya saling 
-          tatap dari kejauhan di koridor pondok, kini duduk semeja, berbagi cerita, dan saling mengenal 
-          lebih dalam. Ternyata, selama ini kami sama-sama masih sendiri — aku bujang, dia pun bujang. 
-          Mungkin inilah yang disebut jodoh yang tidak akan kemana-mana.
-        </div>
+        <div class="story-text">Setahun setelah aku mengajar di SD Muhammadiyah, sebuah kejutan manis datang. Annisa ternyata juga lulus dan diterima bekerja di tempat yang sama denganku. Allah mempertemukan kami kembali di satu ruangan guru yang sama. Aku bujang, dia pun bujang. Mungkin inilah yang disebut jodoh yang tidak akan kemana-mana.</div>
       </div>
-
       <div class="story-item">
         <div class="story-date">BAB IV — KEPUTUSAN SEDERHANA</div>
         <div class="story-title">Karena Cinta Tidak Perlu Ribet</div>
-        <div class="story-text">
-          Aku bukan orang yang suka bertele-tele. Ketika hati sudah mantap, ketika sudah yakin bahwa 
-          dialah wanita yang tepat, maka tidak ada alasan untuk menunda. Aku berpikir, "Untuk apa 
-          menunggu lama jika jalan sudah terang?" Maka dengan niat yang tulus dan hati yang mantap, 
-          aku melamar Annisa. Tanpa drama, tanpa keraguan, hanya ada keyakinan bahwa inilah jalan 
-          yang Allah ridhoi. Dan Alhamdulillah, lamaran itu diterima dengan penuh kebahagiaan.
-        </div>
+        <div class="story-text">Aku bukan orang yang suka bertele-tele. Ketika hati sudah mantap, maka tidak ada alasan untuk menunda. Dengan niat yang tulus, aku melamar Annisa. Tanpa drama, tanpa keraguan, hanya ada keyakinan bahwa inilah jalan yang Allah ridhoi. Alhamdulillah, lamaran itu diterima dengan penuh kebahagiaan.</div>
       </div>
-
       <div class="story-item">
         <div class="story-date">BAB V — HARI INI</div>
         <div class="story-title">Menulis Bab Baru Bersama</div>
-        <div class="story-text">
-          Kini, kami berdiri di ambang babak baru kehidupan. Dari santri pondok yang saling tidak mengenal, 
-          menjadi rekan kerja, lalu menjadi dua insan yang memutuskan untuk menyatukan langkah dalam 
-          ikatan pernikahan yang suci. Kisah kami mungkin sederhana, tanpa kisah cinta yang dramatis 
-          seperti di novel-novel populer. Tapi justru di kesederhanaan itulah kami menemukan keindahan — 
-          bahwa jodoh tidak perlu dicari jauh-jauh, karena ia sudah ditakdirkan oleh Allah sejak lama. 
-          Kami hanya perlu bersabar, dan pada waktunya, Allah akan mempertemukan.
-        </div>
+        <div class="story-text">Kini, kami berdiri di ambang babak baru kehidupan. Dari santri pondok yang saling tidak mengenal, menjadi rekan kerja, lalu menjadi dua insan yang memutuskan untuk menyatukan langkah dalam ikatan pernikahan yang suci. Jodoh tidak perlu dicari jauh-jauh, karena ia sudah ditakdirkan oleh Allah sejak lama.</div>
       </div>
     </div>
   </section>
 
-  <!-- GALERI -->
+  <!-- GALERI - FOTO DARI SPREADSHEET -->
   <section class="fade-in">
     <div class="section-title">Galeri</div>
     <div class="section-subtitle">Our Moments</div>
     <div class="divider"></div>
 
     <div class="gallery-grid">
-      <div class="gallery-item"><img src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/Kumpulan-gambar@main/IMG_20260904_083703.jpg" alt="Foto 1"></div>
-      <div class="gallery-item"><img src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/sanakhudu@main/gambar_istri.jpg" alt="Foto 2"></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=400" alt="Foto 3"></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1529634806980-85c3dd6d34ac?w=400" alt="Foto 4"></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=400" alt="Foto 5"></div>
-      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=400" alt="Foto 6"></div>
+      <div class="gallery-item">
+        <div class="loading-overlay"><i class="fas fa-spinner"></i></div>
+        <img id="galeri1" src="" alt="Foto 1" style="opacity: 0;">
+      </div>
+      <div class="gallery-item">
+        <div class="loading-overlay"><i class="fas fa-spinner"></i></div>
+        <img id="galeri2" src="" alt="Foto 2" style="opacity: 0;">
+      </div>
+      <div class="gallery-item">
+        <div class="loading-overlay"><i class="fas fa-spinner"></i></div>
+        <img id="galeri3" src="" alt="Foto 3" style="opacity: 0;">
+      </div>
+      <div class="gallery-item">
+        <div class="loading-overlay"><i class="fas fa-spinner"></i></div>
+        <img id="galeri4" src="" alt="Foto 4" style="opacity: 0;">
+      </div>
+      <div class="gallery-item">
+        <div class="loading-overlay"><i class="fas fa-spinner"></i></div>
+        <img id="galeri5" src="" alt="Foto 5" style="opacity: 0;">
+      </div>
+      <div class="gallery-item">
+        <div class="loading-overlay"><i class="fas fa-spinner"></i></div>
+        <img id="galeri6" src="" alt="Foto 6" style="opacity: 0;">
+      </div>
     </div>
   </section>
 
-  <!-- RSVP & UCAPAN -->
+  <!-- RSVP & UCAPAN (Firebase) -->
   <section class="fade-in">
     <div class="section-title">RSVP & Ucapan</div>
     <div class="section-subtitle">Confirmation & Wishes</div>
@@ -1043,25 +1068,14 @@
           <label>Nama Lengkap</label>
           <input type="text" id="namaTamu" placeholder="Masukkan nama Anda" required>
         </div>
-
         <div class="form-group">
           <label>Konfirmasi Kehadiran</label>
           <div class="radio-group">
-            <label>
-              <input type="radio" name="kehadiran" value="Hadir" required>
-              <span><i class="fas fa-check-circle"></i> Hadir</span>
-            </label>
-            <label>
-              <input type="radio" name="kehadiran" value="Tidak Hadir">
-              <span><i class="fas fa-times-circle"></i> Tidak Hadir</span>
-            </label>
-            <label>
-              <input type="radio" name="kehadiran" value="Masih Ragu">
-              <span><i class="fas fa-question-circle"></i> Masih Ragu</span>
-            </label>
+            <label><input type="radio" name="kehadiran" value="Hadir" required><span><i class="fas fa-check-circle"></i> Hadir</span></label>
+            <label><input type="radio" name="kehadiran" value="Tidak Hadir"><span><i class="fas fa-times-circle"></i> Tidak Hadir</span></label>
+            <label><input type="radio" name="kehadiran" value="Masih Ragu"><span><i class="fas fa-question-circle"></i> Masih Ragu</span></label>
           </div>
         </div>
-
         <div class="form-group">
           <label>Jumlah Tamu</label>
           <select id="jumlahTamu">
@@ -1071,18 +1085,18 @@
             <option value="4">4 Orang</option>
           </select>
         </div>
-
         <div class="form-group">
           <label>Ucapan & Doa</label>
-          <textarea id="ucapanTamu" placeholder="Tulis ucapan dan doa untuk kedua mempelai..." required></textarea>
+          <textarea id="ucapanTamu" placeholder="Tulis ucapan dan doa..." required></textarea>
         </div>
-
-        <button type="submit" class="submit-btn">
+        <button type="submit" class="submit-btn" id="submitBtn">
           <i class="fas fa-paper-plane"></i> Kirim Ucapan
         </button>
       </form>
 
-      <div class="ucapan-list" id="ucapanList"></div>
+      <div class="ucapan-list" id="ucapanList">
+        <div class="loading-ucapan"><i class="fas fa-spinner"></i><p>Memuat ucapan...</p></div>
+      </div>
     </div>
   </section>
 
@@ -1092,27 +1106,20 @@
     <div class="section-subtitle">Wedding Gift</div>
     <div class="divider"></div>
 
-    <p style="margin-bottom: 20px; color: #666;">
-      Doa restu Anda merupakan karunia yang sangat berarti bagi kami. 
-      Namun jika Anda ingin memberikan tanda kasih, dapat melalui:
-    </p>
+    <p style="margin-bottom: 20px; color: #666;">Doa restu Anda merupakan karunia yang sangat berarti. Jika ingin memberikan tanda kasih:</p>
 
     <div class="amplop-grid">
       <div class="amplop-card">
         <div class="bank-logo">🏦 BCA</div>
         <div class="rek-number">1234567890</div>
         <div class="rek-name">a.n. Adam</div>
-        <button class="copy-btn" onclick="copyRek('1234567890')">
-          <i class="fas fa-copy"></i> Salin
-        </button>
+        <button class="copy-btn" onclick="copyRek('1234567890')"><i class="fas fa-copy"></i> Salin</button>
       </div>
       <div class="amplop-card">
         <div class="bank-logo">🏦 Mandiri</div>
         <div class="rek-number">0987654321</div>
         <div class="rek-name">a.n. Annisa</div>
-        <button class="copy-btn" onclick="copyRek('0987654321')">
-          <i class="fas fa-copy"></i> Salin
-        </button>
+        <button class="copy-btn" onclick="copyRek('0987654321')"><i class="fas fa-copy"></i> Salin</button>
       </div>
     </div>
   </section>
@@ -1123,18 +1130,14 @@
     <div class="divider" style="background: var(--gold);"></div>
     <p class="penutup-text">
       Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i 
-      berkenan hadir untuk memberikan doa restu kepada kami.
-      <br><br>
-      Atas kehadiran dan doa restunya, kami mengucapkan terima kasih.
+      berkenan hadir untuk memberikan doa restu.
       <br><br>
       Wassalamu'alaikum Warahmatullahi Wabarakatuh
     </p>
     <div class="penutup-names">Adam & Annisa</div>
   </section>
 
-  <footer>
-    Made with <i class="fas fa-heart" style="color: var(--gold);"></i> | © 2023
-  </footer>
+  <footer>Made with <i class="fas fa-heart" style="color: var(--gold);"></i> | © 2023</footer>
 
 </div>
 
@@ -1143,39 +1146,77 @@
   <i class="fas fa-music"></i>
 </button>
 
-<!-- AUDIO - MUSIK ARUSATUN -->
+<!-- AUDIO - src kosong, diisi dari Spreadsheet -->
 <audio id="bgMusic" loop preload="auto">
-  <source src="https://cdn.jsdelivr.net/gh/faudyadam77-tech/sanakhudu@main/arusatun.mp3" type="audio/mpeg">
+  <source id="musikSource" src="" type="audio/mpeg">
 </audio>
 
 <script>
+  // ============================================
+  // 🔑 KONFIGURASI - GANTI DENGAN URL ANDA!
+  // ============================================
+  
+  // URL Apps Script (dari Langkah 2)
+  const SPREADSHEET_API_URL = "https://script.google.com/macros/s/AKfycbw9_Mf4vcUc-QlcU8M4fNIArCWRCdBIaeFah1L3XtF2hzOvMWFNiYHGXbYaQSt1e4E3/exec";
+  
+  // Firebase Config (dari setup Firebase sebelumnya)
+  const firebaseConfig = {
+    apiKey: "GANTI_DENGAN_API_KEY_FIREBASE",
+    authDomain: "undangan-adam-annisa.firebaseapp.com",
+    projectId: "undangan-adam-annisa",
+    storageBucket: "undangan-adam-annisa.appspot.com",
+    messagingSenderId: "GANTI_DENGAN_SENDER_ID",
+    appId: "GANTI_DENGAN_APP_ID"
+  };
+
+  // ============================================
+  // INISIALISASI FIREBASE
+  // ============================================
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // ============================================
+  // NAMA TAMU DARI URL
+  // ============================================
   const urlParams = new URLSearchParams(window.location.search);
   const toParam = urlParams.get('to');
   if (toParam) {
     document.getElementById('guestName').textContent = decodeURIComponent(toParam);
   }
 
-  // ===== BUKA UNDANGAN + PLAY MUSIK =====
+  // ============================================
+  // 🎯 FUNGSI UTAMA: BUKA UNDANGAN
+  // ============================================
   function openInvitation() {
     document.getElementById('cover').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
     document.getElementById('musicBtn').style.display = 'block';
     document.body.style.overflow = 'auto';
     
-    // Putar musik otomatis saat tombol "Buka Undangan" diklik
+    // Putar musik
     const music = document.getElementById('bgMusic');
     music.play().then(() => {
       isPlaying = true;
       musicBtn.classList.add('playing');
       musicBtn.innerHTML = '<i class="fas fa-pause"></i>';
     }).catch(err => {
-      console.log('Autoplay dicegah browser:', err);
-      // Jika autoplay dicegah, tampilkan tombol musik saja
+      console.log('Autoplay dicegah:', err);
     });
     
     initAnimations();
   }
 
+  // PERBAIKAN: Klik di area cover (selain tombol) juga membuka undangan
+  document.getElementById('cover').addEventListener('click', function(e) {
+    // Jika yang diklik BUKAN tombol open-btn, tetap buka undangan
+    if (!e.target.closest('#openBtn')) {
+      openInvitation();
+    }
+  });
+
+  // ============================================
+  // 🎵 KONTROL MUSIK
+  // ============================================
   const music = document.getElementById('bgMusic');
   const musicBtn = document.getElementById('musicBtn');
   let isPlaying = false;
@@ -1193,6 +1234,70 @@
     isPlaying = !isPlaying;
   }
 
+  // ============================================
+  // 📊 AMBIL DATA DARI SPREADSHEET
+  // ============================================
+  async function loadDataFromSpreadsheet() {
+    try {
+      // Tambahkan timestamp untuk menghindari cache
+      const response = await fetch(SPREADSHEET_API_URL + '?t=' + Date.now());
+      const data = await response.json();
+      
+      console.log('Data dari Spreadsheet:', data);
+      
+      // === ISI FOTO MEMPELAI ===
+      if (data.foto_adam) {
+        const imgAdam = document.getElementById('fotoAdam');
+        imgAdam.onload = function() {
+          this.style.opacity = '1';
+          this.parentElement.querySelector('.loading-overlay').style.display = 'none';
+        };
+        imgAdam.src = data.foto_adam;
+      }
+      
+      if (data.foto_annisa) {
+        const imgAnnisa = document.getElementById('fotoAnnisa');
+        imgAnnisa.onload = function() {
+          this.style.opacity = '1';
+          this.parentElement.querySelector('.loading-overlay').style.display = 'none';
+        };
+        imgAnnisa.src = data.foto_annisa;
+      }
+      
+      // === ISI GALERI ===
+      for (let i = 1; i <= 6; i++) {
+        const key = 'galeri_' + i;
+        if (data[key]) {
+          const img = document.getElementById('galeri' + i);
+          img.onload = function() {
+            this.style.opacity = '1';
+            this.parentElement.querySelector('.loading-overlay').style.display = 'none';
+          };
+          img.src = data[key];
+        }
+      }
+      
+      // === ISI MUSIK ===
+      if (data.musik_undangan) {
+        document.getElementById('musikSource').src = data.musik_undangan;
+        music.load(); // Reload audio dengan URL baru
+      }
+      
+    } catch (error) {
+      console.error('Gagal mengambil data dari Spreadsheet:', error);
+      // Fallback: tampilkan pesan error
+      document.querySelectorAll('.loading-overlay').forEach(el => {
+        el.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i>';
+      });
+    }
+  }
+
+  // Panggil saat halaman dimuat
+  window.addEventListener('load', loadDataFromSpreadsheet);
+
+  // ============================================
+  // ⏰ COUNTDOWN
+  // ============================================
   const weddingDate = new Date('2023-05-26T08:00:00').getTime();
 
   function updateCountdown() {
@@ -1218,37 +1323,97 @@
   setInterval(updateCountdown, 1000);
   updateCountdown();
 
+  // ============================================
+  // 💬 FIREBASE: LOAD UCAPAN (REAL-TIME)
+  // ============================================
   const ucapanList = document.getElementById('ucapanList');
 
-  document.getElementById('rsvpForm').addEventListener('submit', function(e) {
+  db.collection('ucapan')
+    .orderBy('timestamp', 'desc')
+    .onSnapshot((snapshot) => {
+      ucapanList.innerHTML = '';
+      
+      if (snapshot.empty) {
+        ucapanList.innerHTML = '<div class="loading-ucapan"><i class="far fa-comment-dots" style="font-size: 2em; color: var(--gold);"></i><p>Belum ada ucapan. Jadilah yang pertama! 💕</p></div>';
+        return;
+      }
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const statusClass = data.kehadiran === 'Hadir' ? 'hadir' : 
+                           data.kehadiran === 'Tidak Hadir' ? 'tidak' : 'ragu';
+        const waktu = data.timestamp ? 
+          new Date(data.timestamp.toDate()).toLocaleString('id-ID') : 'Baru saja';
+
+        const item = document.createElement('div');
+        item.className = 'ucapan-item';
+        item.innerHTML = `
+          <div class="ucapan-header">
+            <span class="ucapan-name">${escapeHtml(data.nama)}</span>
+            <span class="ucapan-status ${statusClass}">${data.kehadiran}</span>
+          </div>
+          <div class="ucapan-text">${escapeHtml(data.ucapan)}</div>
+          <div class="ucapan-time"><i class="far fa-clock"></i> ${waktu}</div>
+        `;
+        ucapanList.appendChild(item);
+      });
+    }, (error) => {
+      console.error('Error:', error);
+      ucapanList.innerHTML = '<div class="loading-ucapan"><p>Gagal memuat ucapan.</p></div>';
+    });
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // ============================================
+  //  KIRIM UCAPAN
+  // ============================================
+  document.getElementById('rsvpForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const nama = document.getElementById('namaTamu').value;
+    const submitBtn = document.getElementById('submitBtn');
+    const nama = document.getElementById('namaTamu').value.trim();
     const kehadiran = document.querySelector('input[name="kehadiran"]:checked').value;
-    const ucapan = document.getElementById('ucapanTamu').value;
-    const waktu = new Date().toLocaleString('id-ID');
+    const jumlahTamu = document.getElementById('jumlahTamu').value;
+    const ucapan = document.getElementById('ucapanTamu').value.trim();
 
-    const statusClass = kehadiran === 'Hadir' ? 'hadir' : kehadiran === 'Tidak Hadir' ? 'tidak' : 'ragu';
+    if (!nama || !kehadiran || !ucapan) {
+      alert('Mohon lengkapi semua field.');
+      return;
+    }
 
-    const item = document.createElement('div');
-    item.className = 'ucapan-item';
-    item.innerHTML = `
-      <div class="ucapan-header">
-        <span class="ucapan-name">${nama}</span>
-        <span class="ucapan-status ${statusClass}">${kehadiran}</span>
-      </div>
-      <div class="ucapan-text">${ucapan}</div>
-      <div class="ucapan-time"><i class="far fa-clock"></i> ${waktu}</div>
-    `;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
 
-    ucapanList.insertBefore(item, ucapanList.firstChild);
-    this.reset();
-    alert('Terima kasih! Ucapan Anda telah terkirim. 💕');
+    try {
+      await db.collection('ucapan').add({
+        nama: nama,
+        kehadiran: kehadiran,
+        jumlahTamu: parseInt(jumlahTamu),
+        ucapan: ucapan,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      this.reset();
+      alert('Terima kasih! Ucapan Anda telah terkirim. 💕');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Gagal mengirim ucapan.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Ucapan';
+    }
   });
 
+  // ============================================
+  // 📋 COPY REKENING
+  // ============================================
   function copyRek(nomor) {
     navigator.clipboard.writeText(nomor).then(() => {
-      alert('Nomor rekening berhasil disalin: ' + nomor);
+      alert('Nomor rekening disalin: ' + nomor);
     }).catch(() => {
       const input = document.createElement('input');
       input.value = nomor;
@@ -1256,16 +1421,17 @@
       input.select();
       document.execCommand('copy');
       document.body.removeChild(input);
-      alert('Nomor rekening berhasil disalin: ' + nomor);
+      alert('Nomor rekening disalin: ' + nomor);
     });
   }
 
+  // ============================================
+  // ✨ ANIMASI SCROLL
+  // ============================================
   function initAnimations() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
+        if (entry.isIntersecting) entry.target.classList.add('visible');
       });
     }, { threshold: 0.1 });
 
